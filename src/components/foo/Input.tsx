@@ -1,5 +1,7 @@
-import React, { useEffect, useRef, useState } from 'react';
-import './Input.css';
+import React, { useContext, useEffect, useRef, useState } from 'react'
+import { receiveInput } from '../../store/console/actions'
+import { AppContext } from '../App' 
+import './Input.css'
 
 function formatDate(d: Date) {
     const time = [d.getUTCHours(), d.getUTCMinutes(), d.getUTCSeconds()];
@@ -18,6 +20,9 @@ interface History {
 }
 
 function Input() {
+    // const [state, dispatch] = useContext(Context)
+    // console.log("SOME STATE YO", state)
+
     const inputEl = useRef<HTMLSpanElement>(null);
     const [time, setTime] = useState(new Date());
     const [history, setHistory] = useState<Array<History>>([]);
@@ -48,6 +53,7 @@ function Input() {
                     inputEl.current.innerHTML = '';
                 }
                 window.scrollTo(0, document.body.scrollHeight);
+                // dispatch(receiveInput({time: time, cmd: cmd}))
             }
         } else if (e.key === 'ArrowUp') {
             const prevIdx = historyIdx === -1 ? history.length - 1 : historyIdx - 1;

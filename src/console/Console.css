@@ -1,0 +1,32 @@
+.Console {
+    background-color: rgb(15, 15, 35);
+    color: #c4c5c5;
+    min-height: 100vh;
+    padding: 0.25em 1em;
+    text-align: left;
+}
+
+/* .Console-output {
+    background-color: 
+    padding: 0.25em 1em;
+} */
+
+.Console-output p {
+    margin-bottom: 0;
+    margin-top: 0;
+}
+
+.Console-highlight {
+    color: #61dafb;
+  }
+
+.Console-ok {
+    color: rgb(0, 255, 0);
+}
+
+.Console-warn {
+    color: rgb(255, 222, 49);
+}
+
+
+  

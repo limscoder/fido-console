@@ -2,14 +2,9 @@ import React, { createContext, useReducer } from 'react'
 import styled from 'styled-components'
 import Console from './Console'
 import { AppAction, AppState, appReducer, initialAppState } from '../store'
-import Highlight from './Highlight'
+import Header from './Header'
 
 export const AppContext = createContext<[AppState, React.Dispatch<AppAction>]>([initialAppState, () => {}])
-
-const $Header = styled.h1`
-  font-size: 1em;
-  font-weight: normal;
-`
 
 const $App = styled.div`
   background-color: rgb(15, 15, 35);
@@ -25,7 +20,7 @@ export default function App() {
   return (
     <AppContext.Provider value={ store }>
       <$App>
-        <$Header><Highlight>arecibo station debug console</Highlight></$Header>
+        <Header />
         <Console />
       </$App>
     </AppContext.Provider>

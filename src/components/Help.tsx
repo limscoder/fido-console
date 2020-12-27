@@ -1,12 +1,12 @@
 import React, { ReactNode } from 'react'
 import styled from 'styled-components'
-import { Command } from '../store/command'
+import { Command } from '../store/console/reducer'
 
 const $Help = styled.div`
-  padding: 1em;
+  margin: 1em;
 `
 
-const $Table = styled.div`
+const $Table = styled.table`
   margin-left: 2em;
 `
 
@@ -18,23 +18,34 @@ export default function Help(props: {cmd: Command}) {
   const sections:ReactNode[] = [];
 
   if (props.cmd.description) {
-    sections.push(<p>Description: { props.cmd.description }</p>)
-    sections.push(<br />)
+    sections.push(<p key="description">Description: { props.cmd.description }</p>)
   }
 
   if (props.cmd.usage) {
-    sections.push(<p>Usage: { props.cmd.usage }</p>)
-    sections.push(<br />)
+    sections.push(<p key="usage">Usage: { props.cmd.usage }</p>)
   }
 
   if (props.cmd.subCommands && props.cmd.subCommands.length) {
     const cmdRows = props.cmd.subCommands.map((cmd) => {
-      return <tr><$Td>{ cmd.name }</$Td><td>{ cmd.description }</td></tr>
+      return <tr><$Td>{ cmd.name }</$Td><td>- { cmd.description }</td></tr>
     })
 
-    sections.push(<p>Available commands:</p>)
-    sections.push(<$Table><tbody>{ cmdRows }</tbody></$Table>)
+    sections.push(<p key="commands-header">Available commands:</p>)
+    sections.push(<$Table key="commands"><tbody>{ cmdRows }</tbody></$Table>)
   }
+
+  const prompts = (props.cmd.prompts || []).concat([
+    {
+      flag: 'help',
+      description: 'show help for command',
+      prompt: 'show help?'
+    }
+  ])
+  const flagRows = prompts.map((prompt) => {
+    return <tr><$Td>{ prompt.flag }</$Td><td>- { prompt.description }</td></tr>
+  })
+  sections.push(<p key="flags-header">Available flags:</p>)
+  sections.push(<$Table key="flags"><tbody>{ flagRows }</tbody></$Table>)
 
   return <$Help>{ sections }</$Help>
 }

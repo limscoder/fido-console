@@ -1,9 +1,9 @@
-import React, { useContext, useState, useEffect, useRef } from 'react'
+import React, { useContext, useEffect, useRef } from 'react'
 import { AppContext } from './App' 
 import Icon from './Icon'
 import styled from 'styled-components'
-import { prevStatement, nextStatement } from '../store/console/actions'
-import { execCommand } from '../store/command'
+import { CommandOption } from '../store/console/reducer'
+import { execStatement, prevStatement, nextStatement } from '../store/console/actions'
 
 function Status(props: {time: Date}) {
   const t = props.time
@@ -46,13 +46,12 @@ const $TextBox = styled.span`
 interface InputProps {
   cmd: string
   busy: boolean
-  onExec(cmd: string): any
+  onEnter(cmd: string): any
   onNext(): any
   onPrev(): any
 }
 
 function Input(props: InputProps) {
-  
   const textEl = useRef<HTMLSpanElement>(null)
   useEffect(() => {
     if (!props.busy && props.cmd === '' && textEl?.current?.innerHTML !== '') {
@@ -63,12 +62,14 @@ function Input(props: InputProps) {
     }
 
     // auto-focus the text input
-    let interval = window.setInterval(() => {
+    if (!props.busy) {
+      let interval = window.setInterval(() => {
         if (document.activeElement !== textEl?.current) {
             textEl?.current?.focus();
         }
-    }, 300);
-    return () => window.clearInterval(interval);
+      }, 100);
+      return () => window.clearInterval(interval);
+    }
   });
 
   // detect key events
@@ -80,10 +81,7 @@ function Input(props: InputProps) {
     if (e.key === 'Enter') {
       e.preventDefault()
       e.stopPropagation()
-      props.onExec(textEl.current?.innerHTML || '')
-      if (textEl && textEl.current) {
-        // textEl.current.innerHTML = ''
-      }
+      props.onEnter(textEl.current?.innerHTML || '')
     } else if (e.key === 'ArrowUp') {
       props.onPrev()
     } else if (e.key === 'ArrowDown') {
@@ -105,10 +103,54 @@ function Input(props: InputProps) {
   )
 }
 
+interface PromptProps {
+  option: CommandOption
+  onEnter(input: string): any
+}
+
+function Prompt(props: PromptProps) {
+  const textEl = useRef<HTMLSpanElement>(null)
+  useEffect(() => {
+    // auto-focus the text input
+    let interval = window.setInterval(() => {
+        if (document.activeElement !== textEl?.current) {
+            textEl?.current?.focus();
+        }
+    }, 100);
+    return () => window.clearInterval(interval);
+  });
+
+  // detect key events
+  const onKeydown = (e: React.KeyboardEvent<HTMLSpanElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      e.stopPropagation()
+      props.onEnter(textEl.current?.innerHTML || '')
+    }
+  }
+
+  return (
+    <$Input>
+      <span>{ props.option?.prompt }&nbsp;</span>
+      <$TextBox ref={ textEl }
+                key={ props.option.flag }
+                role="textbox"
+                onKeyDown={ onKeydown }
+                spellCheck={ false }
+                contentEditable={ true }
+                suppressContentEditableWarning />
+    </$Input>
+  )
+}
+
 export default function Console() {
-  const [state, dispatch] = useContext(AppContext)
+  const [store, dispatch] = useContext(AppContext)
+  const stmt = store.consoleState.stmt
   const onExec = (input: string) => {
-    execCommand(dispatch, {time: state.consoleState.stmt.time, input})
+    execStatement(dispatch, {
+      time: stmt.time,
+      input
+    })
   }
   const onPrev = () => {
     dispatch(prevStatement())
@@ -116,8 +158,14 @@ export default function Console() {
   const onNext = () => {
     dispatch(nextStatement())
   }
+  const onPrompt = (input: string) => {
+    execStatement(dispatch, {
+      time: stmt.time,
+      input: stmt.input + ` --${stmt.prompt?.flag}=${input}`
+    })
+  }
 
-  const results = state.consoleState.results.map((v, i) => {
+  const results = store.consoleState.results.map((v, i) => {
     return (
       <React.Fragment key={ i }>
         <Status time={ v.stmt.time } />
@@ -133,12 +181,13 @@ export default function Console() {
   return (
     <div>
       { results }
-      <Status time={ state.consoleState.stmt.time } />
-      <Input cmd={ state.consoleState.stmt.input }
-             busy={ state.consoleState.busy }
-             onExec={ onExec }
+      <Status time={ stmt.time } />
+      <Input cmd={ stmt.input }
+             busy={ stmt.busy || false }
+             onEnter={ onExec }
              onPrev={ onPrev }
              onNext={ onNext } />
+      { stmt.prompt ? <Prompt option={ stmt.prompt } onEnter={ onPrompt } /> : null }
     </div>
   )
 }

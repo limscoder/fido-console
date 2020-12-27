@@ -1,17 +1,19 @@
+import { Dispatch, ReactNode } from 'react'
+import { parseStatement } from './commands'
 import { Statement, StatementResult } from "./reducer"
 
-export const BEGIN_STATEMENT = 'BEGIN_STATEMENT'
-export function beginStatement(stmt: Statement) {
+export const RECEIVE_STATEMENT = 'RECEIVE_STATEMENT'
+export function receiveStatement(stmt: Statement) {
   return {
-    type: BEGIN_STATEMENT,
+    type: RECEIVE_STATEMENT,
     payload: stmt
   } as const
 }
 
-export const RECEIVE_STATEMENT = 'RECEIVE_STATEMENT'
-export function receiveStatement(result: StatementResult) {
+export const COMPLETE_STATEMENT = 'COMPLETE_STATEMENT'
+export function completeStatement(result: StatementResult) {
   return {
-    type: RECEIVE_STATEMENT,
+    type: COMPLETE_STATEMENT,
     payload: result
   } as const
 }
@@ -32,4 +34,21 @@ export function prevStatement() {
   } as const
 }
 
-export type ConsoleAction = ReturnType<typeof receiveStatement> | ReturnType<typeof nextStatement> | ReturnType<typeof prevStatement> | ReturnType<typeof beginStatement>
+
+export function execStatement(dispatch: Dispatch<ConsoleAction>, stmt: Statement) {
+  if (stmt.input.trim() === '') {
+    // no-op
+    return
+  }
+
+  parseStatement(stmt)
+  dispatch(receiveStatement(stmt))
+
+  if (!stmt.prompt && stmt.cmd?.exec) {
+    stmt.cmd.exec(stmt.argv || [], stmt.opts || {}, (output: ReactNode) => {
+      dispatch(completeStatement({stmt, output}))
+    })
+  }
+}
+
+export type ConsoleAction = ReturnType<typeof completeStatement> | ReturnType<typeof nextStatement> | ReturnType<typeof prevStatement> | ReturnType<typeof receiveStatement>

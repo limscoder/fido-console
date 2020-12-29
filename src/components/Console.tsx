@@ -4,6 +4,7 @@ import Icon from './Icon'
 import styled from 'styled-components'
 import { CommandOption } from '../store/console/reducer'
 import { execStatement, prevStatement, nextStatement } from '../store/console/actions'
+import { initSession } from '../store/session/actions'
 
 function Status(props: {time: Date}) {
   const t = props.time
@@ -67,6 +68,7 @@ function Input(props: InputProps) {
         if (document.activeElement !== textEl?.current) {
             textEl?.current?.focus();
         }
+        window.scrollTo(0, document.body.scrollHeight)
       }, 100);
       return () => window.clearInterval(interval);
     }
@@ -147,10 +149,10 @@ export default function Console() {
   const [store, dispatch] = useContext(AppContext)
   const stmt = store.consoleState.stmt
   const onExec = (input: string) => {
-    execStatement(dispatch, {
+    dispatch(execStatement({
       time: stmt.time,
       input
-    })
+    }))
   }
   const onPrev = () => {
     dispatch(prevStatement())
@@ -159,11 +161,16 @@ export default function Console() {
     dispatch(nextStatement())
   }
   const onPrompt = (input: string) => {
-    execStatement(dispatch, {
+    dispatch(execStatement({
       time: stmt.time,
-      input: stmt.input + ` --${stmt.prompt?.flag}=${input}`
-    })
+      input: stmt.input.replace(new RegExp(`\\s+~+${stmt.prompt?.flag}`), '') + ` --${stmt.prompt?.flag}=${input}`
+    }))
   }
+  useEffect(() => {
+    if (store.sessionState.cxnId === '') {
+      dispatch(initSession())
+    }
+  }, [store.sessionState]);
 
   const results = store.consoleState.results.map((v, i) => {
     return (

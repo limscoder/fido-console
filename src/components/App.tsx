@@ -1,4 +1,5 @@
-import React, { createContext, useReducer } from 'react'
+import React, { createContext } from 'react'
+import useThunkReducer from 'react-hook-thunk-reducer'
 import styled from 'styled-components'
 import Console from './Console'
 import { AppAction, AppState, appReducer, initialAppState } from '../store'
@@ -16,7 +17,7 @@ const $App = styled.div`
 `
 
 export default function App() {
-  const store = useReducer(appReducer, initialAppState)
+  const store = useThunkReducer(appReducer, initialAppState)
   return (
     <AppContext.Provider value={ store }>
       <$App>

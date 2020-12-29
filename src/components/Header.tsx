@@ -1,7 +1,7 @@
 
 import React, { useContext } from 'react'
 import styled from 'styled-components'
-import { execStatement } from '../store/console/actions'
+import { authenticateSession } from '../store/session/actions'
 import { AppContext } from './App'
 import Button from './Button'
 import Highlight from './Highlight'
@@ -17,17 +17,17 @@ export default function Header() {
   let authUser: string
   let authText: string
   let authCallback: () => void
-  if (store.userState.authenticated) {
-    authUser = store.userState.username
+  if (store.sessionState.authenticated) {
+    authUser = store.sessionState.user
     authText = 'logout'
     authCallback = () => {
-      execStatement(dispatch, {time: new Date(), input: 'logout'})
+      // dispatch(execStatement({time: new Date(), input: 'logout'}))
     }
   } else {
     authUser = 'unauthenticated'
     authText = 'login'
     authCallback = () => {
-      execStatement(dispatch, {time: new Date(), input: 'login'})
+      dispatch(authenticateSession())
     }
   }
 

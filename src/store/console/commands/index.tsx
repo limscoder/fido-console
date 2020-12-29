@@ -1,13 +1,12 @@
 import React from 'react'
-import Error from '../../../components/Error'
 import Help from '../../../components/Help'
 import { Command, Statement, OptionMap, CommandCompleteCallback } from '../reducer'
-import { login } from './login'
+import { connect } from './connect'
 
 const rootCmd = {
   name: 'root',
   subCommands: [
-    login,
+    connect
   ]
 }
 
@@ -15,23 +14,22 @@ function help(cmd: Command, cmdNotFound: boolean): Command {
   return {
     name: 'help',
     notFound: cmdNotFound,
-    exec: (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback) => {
-      onComplete(
-        <React.Fragment>
-          { cmdNotFound? <Error showIcon>command not found</Error> : null }
-          <Help cmd={ cmd } />
-        </React.Fragment>)
+    exec: async (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback) => {
+      onComplete({
+        output: <Help cmd={ cmd } />,
+        error: (cmdNotFound ? 'command not found' : undefined)
+      })
     }
   }
 }
 
 function parseCmd(argv: string[], cmd: Command): Command {
   if (cmd.subCommands) {
-    const targetCmd = argv.shift()
+    const targetCmd = argv[0]
     for (let i = 0; i < cmd.subCommands.length; i++) {
       const subCmd = cmd.subCommands[i]
       if (subCmd.name === targetCmd) {
-        return parseCmd(argv, subCmd)
+        return parseCmd(argv.slice(1, argv.length), subCmd)
       }
     }
 
@@ -44,6 +42,7 @@ function parseCmd(argv: string[], cmd: Command): Command {
 
 export function parseStatement(stmt: Statement) {
   const opts:OptionMap = {}
+  const promptOpts:Record<string, boolean> = {}
   const argv = stmt.input.split(/\s+/).reduce<string[]>((a, v) => {
     if (v.startsWith('-')) {
       // parse option or flag
@@ -57,19 +56,23 @@ export function parseStatement(stmt: Statement) {
         }
       }
       return a
+    } else if (v.startsWith('~')) {
+      const flag = v.match(/~+(.*)/)
+      if (flag && flag.length > 0) {
+        promptOpts[flag[1]] = true
+      }
+      return a
     }
 
     return a.concat([v])
   }, [])
   
   const cmd = parseCmd(argv, rootCmd)
-  if (opts.help && !cmd.notFound) {
-    // show help message
-    stmt.cmd = help(cmd, false)
+  if (argv[0] === 'help' || opts.help) {
+    stmt.cmd = help(cmd.notFound? rootCmd : cmd, false)
     return
   }
   
-  stmt.cmd = cmd
   stmt.cmd = cmd
   stmt.opts = opts
   stmt.argv = argv
@@ -79,11 +82,9 @@ export function parseStatement(stmt: Statement) {
   const prompts = cmd?.prompts || []
   for (let i = 0; i < prompts.length; i++) {
     const prompt = prompts[i];
-    if (prompt.required && opts[prompt.flag] === undefined) {
+    if (opts[prompt.flag] === undefined && (prompt.required || promptOpts[prompt.flag])) {
       stmt.prompt = prompt
       break
     }
   }
 }
-
-

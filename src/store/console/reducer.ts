@@ -1,6 +1,7 @@
 import produce from "immer"
 import { ReactNode } from "react"
 import { ConsoleAction, RECEIVE_STATEMENT, NEXT_STATEMENT, PREV_STATEMENT, COMPLETE_STATEMENT } from "./actions"
+import { AppAction } from '..'
 
 const historyLimit = 250
 
@@ -12,7 +13,14 @@ export interface CommandOption {
 }
 
 export type OptionMap = Record<string, string>
-export type CommandCompleteCallback = (output: ReactNode) => void
+
+export interface CommandResult {
+  output: ReactNode,
+  actions?: AppAction[],
+  error?: string
+}
+
+export type CommandCompleteCallback = (result: CommandResult) => void
 
 export interface Command {
   name: string

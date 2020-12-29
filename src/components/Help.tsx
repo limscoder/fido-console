@@ -27,7 +27,7 @@ export default function Help(props: {cmd: Command}) {
 
   if (props.cmd.subCommands && props.cmd.subCommands.length) {
     const cmdRows = props.cmd.subCommands.map((cmd) => {
-      return <tr><$Td>{ cmd.name }</$Td><td>- { cmd.description }</td></tr>
+      return <tr key={ cmd.name }><$Td>{ cmd.name }</$Td><td>- { cmd.description }</td></tr>
     })
 
     sections.push(<p key="commands-header">Available commands:</p>)
@@ -42,7 +42,7 @@ export default function Help(props: {cmd: Command}) {
     }
   ])
   const flagRows = prompts.map((prompt) => {
-    return <tr><$Td>{ prompt.flag }</$Td><td>- { prompt.description }</td></tr>
+    return <tr key={ prompt.flag }><$Td>--{ prompt.flag }</$Td><td>- { prompt.description }</td></tr>
   })
   sections.push(<p key="flags-header">Available flags:</p>)
   sections.push(<$Table key="flags"><tbody>{ flagRows }</tbody></$Table>)

@@ -1,7 +1,7 @@
 
 import React, { useContext } from 'react'
 import styled from 'styled-components'
-import { authenticateSession } from '../store/session/actions'
+import { authenticateSession, disconnectSession } from '../store/session/actions'
 import { AppContext } from './App'
 import Button from './Button'
 import Highlight from './Highlight'
@@ -21,7 +21,7 @@ export default function Header() {
     authUser = store.sessionState.user
     authText = 'logout'
     authCallback = () => {
-      // dispatch(execStatement({time: new Date(), input: 'logout'}))
+      dispatch(disconnectSession())
     }
   } else {
     authUser = 'unauthenticated'

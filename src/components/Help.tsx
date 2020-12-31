@@ -34,18 +34,23 @@ export default function Help(props: {cmd: Command}) {
     sections.push(<$Table key="commands"><tbody>{ cmdRows }</tbody></$Table>)
   }
 
-  const prompts = (props.cmd.prompts || []).concat([
-    {
-      flag: 'help',
-      description: 'show help for command',
-      prompt: 'show help?'
-    }
-  ])
-  const flagRows = prompts.map((prompt) => {
-    return <tr key={ prompt.flag }><$Td>--{ prompt.flag }</$Td><td>- { prompt.description }</td></tr>
-  })
-  sections.push(<p key="flags-header">Available flags:</p>)
-  sections.push(<$Table key="flags"><tbody>{ flagRows }</tbody></$Table>)
+  let prompts = (props.cmd.prompts || [])
+  if (props.cmd.name !== 'root'){
+    prompts.concat([
+      {
+        flag: 'help',
+        description: 'show help for command',
+        prompt: 'show help?'
+      }
+    ])
+  }
+  if (prompts.length) {
+    const flagRows = prompts.map((prompt) => {
+      return <tr key={ prompt.flag }><$Td>--{ prompt.flag }</$Td><td>- { prompt.description }</td></tr>
+    })
+    sections.push(<p key="flags-header">Available flags:</p>)
+    sections.push(<$Table key="flags"><tbody>{ flagRows }</tbody></$Table>)
+  }
 
   return <$Help>{ sections }</$Help>
 }

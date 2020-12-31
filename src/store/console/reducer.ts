@@ -1,7 +1,7 @@
 import produce from "immer"
 import { ReactNode } from "react"
-import { ConsoleAction, RECEIVE_STATEMENT, NEXT_STATEMENT, PREV_STATEMENT, COMPLETE_STATEMENT } from "./actions"
-import { AppAction } from '..'
+import { ConsoleAction, RECEIVE_STATEMENT, NEXT_STATEMENT, PREV_STATEMENT, CLEAR_STATEMENT, COMPLETE_STATEMENT, CLEAR_CONSOLE } from "./actions"
+import { AppState, AppAction } from '..'
 
 const historyLimit = 250
 
@@ -29,7 +29,7 @@ export interface Command {
   subCommands?: Command[]
   prompts?: CommandOption[]
   notFound?: boolean
-  exec?(argv: string[], options: OptionMap, onComplete: CommandCompleteCallback): void
+  exec?(argv: string[], options: OptionMap, onComplete: CommandCompleteCallback, getState: () => AppState): void
 }
 
 export interface Statement {
@@ -103,6 +103,12 @@ export const consoleReducer = produce((draft: ConsoleState, action: ConsoleActio
         draft.historyIdx = prevIdx
         draft.stmt.input = draft.history[prevIdx]
       }
+      break
+    case CLEAR_STATEMENT:
+      draft.stmt = { time: new Date(), input: '' }
+      break
+    case CLEAR_CONSOLE:
+      draft.results = []
       break
   }
 })

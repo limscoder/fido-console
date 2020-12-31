@@ -3,7 +3,7 @@ import { AppContext } from './App'
 import Icon from './Icon'
 import styled from 'styled-components'
 import { CommandOption } from '../store/console/reducer'
-import { execStatement, prevStatement, nextStatement } from '../store/console/actions'
+import { execStatement, prevStatement, nextStatement, clearStatement } from '../store/console/actions'
 import { initSession } from '../store/session/actions'
 
 function Status(props: {time: Date}) {
@@ -50,6 +50,28 @@ interface InputProps {
   onEnter(cmd: string): any
   onNext(): any
   onPrev(): any
+  onClear(): any
+}
+
+function alwaysFocusEffect(el: HTMLElement): () => any {
+  el.focus()
+  const onKeydown = (e: KeyboardEvent) => { 
+    if (document.activeElement !== el && !e.altKey && !e.ctrlKey && !e.metaKey) {
+      el.focus()
+      window.scrollTo(0, document.body.scrollHeight)
+
+      // move caret to end https://stackoverflow.com/questions/1125292/how-to-move-cursor-to-end-of-contenteditable-entity
+      const range = document.createRange() //Create a range (a range is a like the selection but invisible)
+      range.selectNodeContents(el) //Select the entire contents of the element with the range
+      range.collapse(false) //collapse the range to the end point. false means collapse to end rather than the start
+      const selection = window.getSelection(); //get the selection object (allows you to change selection)
+      selection?.removeAllRanges() //remove any selections already made
+      selection?.addRange(range) //make the range you have just created the visible selection
+    }
+  }
+  const onKeydownOpts = { capture: true }
+  document.addEventListener('keydown', onKeydown, onKeydownOpts)
+  return () => { document.removeEventListener('keydown', onKeydown, onKeydownOpts) }
 }
 
 function Input(props: InputProps) {
@@ -63,14 +85,8 @@ function Input(props: InputProps) {
     }
 
     // auto-focus the text input
-    if (!props.busy) {
-      let interval = window.setInterval(() => {
-        if (document.activeElement !== textEl?.current) {
-            textEl?.current?.focus();
-        }
-        window.scrollTo(0, document.body.scrollHeight)
-      }, 100);
-      return () => window.clearInterval(interval);
+    if (!props.busy && textEl?.current) {
+      return alwaysFocusEffect(textEl.current)
     }
   });
 
@@ -88,6 +104,8 @@ function Input(props: InputProps) {
       props.onPrev()
     } else if (e.key === 'ArrowDown') {
       props.onNext()
+    } else if (e.key === 'c' && e.ctrlKey) {
+      props.onClear()
     }
   }
 
@@ -108,18 +126,15 @@ function Input(props: InputProps) {
 interface PromptProps {
   option: CommandOption
   onEnter(input: string): any
+  onClear(): any
 }
 
 function Prompt(props: PromptProps) {
   const textEl = useRef<HTMLSpanElement>(null)
   useEffect(() => {
-    // auto-focus the text input
-    let interval = window.setInterval(() => {
-        if (document.activeElement !== textEl?.current) {
-            textEl?.current?.focus();
-        }
-    }, 100);
-    return () => window.clearInterval(interval);
+    if (textEl?.current) {
+      return alwaysFocusEffect(textEl.current)
+    }
   });
 
   // detect key events
@@ -128,6 +143,8 @@ function Prompt(props: PromptProps) {
       e.preventDefault()
       e.stopPropagation()
       props.onEnter(textEl.current?.innerHTML || '')
+    } else if (e.key === 'c' && e.ctrlKey) {
+      props.onClear()
     }
   }
 
@@ -159,6 +176,9 @@ export default function Console() {
   }
   const onNext = () => {
     dispatch(nextStatement())
+  }
+  const onClear = () => {
+    dispatch(clearStatement())
   }
   const onPrompt = (input: string) => {
     dispatch(execStatement({
@@ -193,8 +213,9 @@ export default function Console() {
              busy={ stmt.busy || false }
              onEnter={ onExec }
              onPrev={ onPrev }
-             onNext={ onNext } />
-      { stmt.prompt ? <Prompt option={ stmt.prompt } onEnter={ onPrompt } /> : null }
+             onNext={ onNext }
+             onClear={ onClear } />
+      { stmt.prompt ? <Prompt option={ stmt.prompt } onEnter={ onPrompt } onClear={ onClear } /> : null }
     </div>
   )
 }

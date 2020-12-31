@@ -1,12 +1,23 @@
 import React from 'react'
 import Help from '../../../components/Help'
 import { Command, Statement, OptionMap, CommandCompleteCallback } from '../reducer'
-import { connect } from './connect'
+import { session } from './session'
+import { clearConsole } from '../../console/actions'
 
 const rootCmd = {
   name: 'root',
   subCommands: [
-    connect
+    session, {
+      name: 'clear',
+      description: 'clear console output',
+      usage: 'clear',
+      exec: async (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback) => {
+        onComplete({
+          actions: [clearConsole()],
+          output: null
+        })
+      }
+    }
   ]
 }
 
@@ -34,7 +45,7 @@ function parseCmd(argv: string[], cmd: Command): Command {
     }
 
     // command not found
-    return help(cmd, true)
+    return help(cmd, !!targetCmd)
   }
 
   return cmd
@@ -67,12 +78,15 @@ export function parseStatement(stmt: Statement) {
     return a.concat([v])
   }, [])
   
-  const cmd = parseCmd(argv, rootCmd)
-  if (argv[0] === 'help' || opts.help) {
-    stmt.cmd = help(cmd.notFound? rootCmd : cmd, false)
+  if (argv[0] === 'help') {
+    stmt.cmd = help(rootCmd, false)
     return
   }
-  
+  const cmd = parseCmd(argv, rootCmd)
+  if (opts.help && cmd.name !== 'help') {
+    stmt.cmd = help(cmd, false)
+    return
+  }
   stmt.cmd = cmd
   stmt.opts = opts
   stmt.argv = argv

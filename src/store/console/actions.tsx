@@ -36,6 +36,21 @@ export function prevStatement() {
   } as const
 }
 
+export const CLEAR_STATEMENT = 'CLEAR_STATEMENT'
+export function clearStatement() {
+  return {
+    type: CLEAR_STATEMENT,
+    payload: undefined
+  } as const
+}
+
+export const CLEAR_CONSOLE = 'CLEAR_CONSOLE'
+export function clearConsole() {
+  return {
+    type: CLEAR_CONSOLE,
+    payload: undefined
+  } as const
+}
 
 export function execStatement(stmt: Statement) {
   return (dispatch: Dispatch<AppAction>, getState: () => AppState) => {
@@ -50,7 +65,7 @@ export function execStatement(stmt: Statement) {
     dispatch(receiveStatement(stmt))
   
     if (!stmt.prompt && stmt.cmd?.exec) {
-      stmt.cmd.exec(stmt.argv || [], stmt.opts || {}, (result: CommandResult) => {
+      stmt.cmd.exec(stmt.argv || [], stmt.opts || {},(result: CommandResult) => {
         result.actions?.forEach(dispatch)
         let output = result.output
         if (result.error && result.error !== '') {
@@ -62,9 +77,14 @@ export function execStatement(stmt: Statement) {
           )
         }
         dispatch(completeStatement({stmt, output}))
-      })
+      }, getState)
     }
   }
 }
 
-export type ConsoleAction = ReturnType<typeof completeStatement> | ReturnType<typeof nextStatement> | ReturnType<typeof prevStatement> | ReturnType<typeof receiveStatement>
+export type ConsoleAction = ReturnType<typeof completeStatement> |
+  ReturnType<typeof nextStatement> |
+  ReturnType<typeof prevStatement> |
+  ReturnType<typeof receiveStatement> |
+  ReturnType<typeof clearStatement> |
+  ReturnType<typeof clearConsole>;

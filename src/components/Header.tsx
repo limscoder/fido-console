@@ -1,4 +1,3 @@
-
 import React, { useContext } from 'react'
 import styled from 'styled-components'
 import { authenticateSession, disconnectSession } from '../store/session/actions'
@@ -33,7 +32,7 @@ export default function Header() {
 
   return (
     <$Header>
-      <Highlight>arecibo station debug console</Highlight>
+      <Highlight>arecibo auxillary control console</Highlight>
       &nbsp;&nbsp;-&nbsp;&nbsp;
       <span>
         { authUser }&nbsp;

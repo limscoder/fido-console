@@ -36,7 +36,7 @@ export default function Help(props: {cmd: Command}) {
 
   let prompts = (props.cmd.prompts || [])
   if (props.cmd.name !== 'root'){
-    prompts.concat([
+    prompts = prompts.concat([
       {
         flag: 'help',
         description: 'show help for command',

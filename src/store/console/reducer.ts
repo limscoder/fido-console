@@ -1,5 +1,5 @@
 import produce from "immer"
-import { ReactNode } from "react"
+import { Dispatch, ReactNode } from "react"
 import { ConsoleAction, RECEIVE_STATEMENT, NEXT_STATEMENT, PREV_STATEMENT, CLEAR_STATEMENT, COMPLETE_STATEMENT, CLEAR_CONSOLE } from "./actions"
 import { AppState, AppAction } from '..'
 
@@ -20,7 +20,13 @@ export interface CommandResult {
   error?: string
 }
 
-export type CommandCompleteCallback = (result: CommandResult) => void
+export interface CommandContext {
+  argv: string[]
+  opts: OptionMap
+  dispatch: Dispatch<AppAction>
+  getState: () => AppState
+  onComplete: (result: CommandResult) => void
+}
 
 export interface Command {
   name: string
@@ -29,7 +35,7 @@ export interface Command {
   subCommands?: Command[]
   prompts?: CommandOption[]
   notFound?: boolean
-  exec?(argv: string[], options: OptionMap, onComplete: CommandCompleteCallback, getState: () => AppState): void
+  exec?(context: CommandContext): void
 }
 
 export interface Statement {

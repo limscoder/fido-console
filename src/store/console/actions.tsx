@@ -65,19 +65,26 @@ export function execStatement(stmt: Statement) {
     dispatch(receiveStatement(stmt))
   
     if (!stmt.prompt && stmt.cmd?.exec) {
-      stmt.cmd.exec(stmt.argv || [], stmt.opts || {},(result: CommandResult) => {
-        result.actions?.forEach(dispatch)
-        let output = result.output
-        if (result.error && result.error !== '') {
-          output = (
-            <React.Fragment>
-              <p><Error showIcon>{ result.error }</Error></p>
-              { output }
-            </React.Fragment>
-          )
+      const cmdExec = {
+        argv: stmt.argv || [],
+        opts: stmt.opts || {},
+        dispatch,
+        getState,
+        onComplete: (result: CommandResult) => {
+          result.actions?.forEach(dispatch)
+          let output = result.output
+          if (result.error && result.error !== '') {
+            output = (
+              <React.Fragment>
+                <p><Error showIcon>{ result.error }</Error></p>
+                { output }
+              </React.Fragment>
+            )
+          }
+          dispatch(completeStatement({stmt, output}))
         }
-        dispatch(completeStatement({stmt, output}))
-      }, getState)
+      }
+      stmt.cmd.exec(cmdExec)
     }
   }
 }

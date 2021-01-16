@@ -26,10 +26,12 @@ export default function Table(props: TableProps) {
   return (
     <$table>
       <thead>
-        { props.header.map((h: ReactNode) => <$th>{ h }</$th>)}
+        <tr>
+          { props.header.map((h: ReactNode, i: number) => <$th key={ i }>{ h }</$th>)}
+        </tr>
       </thead>
       <tbody>
-        { props.rows.map((r: ReactNode[]) => <tr>{ r.map((i: ReactNode) => <$td>{ i }</$td>) }</tr>)}
+        { props.rows.map((r: ReactNode[], i: number) => <tr key={ i } >{ r.map((c: ReactNode, i: number) => <$td key={ i }>{ c }</$td>) }</tr>)}
       </tbody>
     </$table>
   )

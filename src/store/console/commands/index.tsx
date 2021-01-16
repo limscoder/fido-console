@@ -1,18 +1,23 @@
 import React from 'react'
 import Help from '../../../components/Help'
-import { Command, Statement, OptionMap, CommandCompleteCallback } from '../reducer'
+import { Command, Statement, OptionMap, CommandContext } from '../reducer'
 import { session } from './session'
+import { station } from './station'
+import { transmission } from './transmission'
 import { clearConsole } from '../../console/actions'
 
 const rootCmd = {
   name: 'root',
   subCommands: [
-    session, {
+    session,
+    station,
+    transmission,
+    {
       name: 'clear',
       description: 'clear console output',
       usage: 'clear',
-      exec: async (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback) => {
-        onComplete({
+      exec: async (context: CommandContext) => {
+        context.onComplete({
           actions: [clearConsole()],
           output: null
         })
@@ -25,8 +30,8 @@ function help(cmd: Command, cmdNotFound: boolean): Command {
   return {
     name: 'help',
     notFound: cmdNotFound,
-    exec: async (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback) => {
-      onComplete({
+    exec: async (context: CommandContext) => {
+      context.onComplete({
         output: <Help cmd={ cmd } />,
         error: (cmdNotFound ? 'command not found' : undefined)
       })
@@ -57,7 +62,7 @@ export function parseStatement(stmt: Statement) {
   const argv = stmt.input.split(/\s+/).reduce<string[]>((a, v) => {
     if (v.startsWith('-')) {
       // parse option or flag
-      const opt = v.match(/-+(.*)="?(.*)"?/)
+      const opt = v.match(/-+(.*)="?([^"]*)"?/)
       if (opt && opt.length > 2) {
         opts[opt[1]] = opt[2]
       } else {

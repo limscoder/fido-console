@@ -2,9 +2,8 @@ import React from 'react'
 import Warn from '../../../components/Warn'
 import Table from '../../../components/Table'
 import { connectBastion, receiveAuthentication } from '../../session/actions'
-import { CommandCompleteCallback, OptionMap } from "../reducer"
+import { CommandContext } from "../reducer"
 import { commandRequest, RestResponse } from './request'
-import { AppState } from '../../'
 
 function apiUrl(host: string) {
   return `https://${host}/api`
@@ -25,10 +24,10 @@ export const session = {
         description: 'bastion host domain',
         required: true
       }],
-      exec: async (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback) => {
-        const host = opts.host
-        const url = `${apiUrl(host)}/connect`
-        await commandRequest({ url }, onComplete, (response: RestResponse) => {
+      exec: async (context: CommandContext) => {
+        const host = context.opts.host
+        const url = `${apiUrl(host)}/session/connect`
+        await commandRequest({ context, url }, (response: RestResponse) => {
           return {
             actions: [connectBastion({
               cxnId: response.body.cxnId,
@@ -52,9 +51,8 @@ export const session = {
       description: 'disconnect client',
       usage: 'session disconnect',
       prompts: [],
-      exec: async (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback, getState: () => AppState) => {
-        const url = `${getState().sessionState.apiUrl}/disconnect`
-        await commandRequest({ url, payload: opts }, onComplete, (response: RestResponse) => {
+      exec: async (context: CommandContext) => {
+        await commandRequest({ context, url: '/session/disconnect', payload: context.opts }, (response: RestResponse) => {
           return {
             actions: [receiveAuthentication({
               user: '',
@@ -75,9 +73,8 @@ export const session = {
         description: 'api authentication token',
         required: true
       }],
-      exec: async (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback, getState: () => AppState) => {
-        const url = `${getState().sessionState.apiUrl}/authenticate`
-        await commandRequest({ url, payload: opts }, onComplete, (response: RestResponse) => {
+      exec: async (context: CommandContext) => {
+        await commandRequest({ context, url: '/session/authenticate', payload: context.opts }, (response: RestResponse) => {
           return {
             actions: [receiveAuthentication({
               user: response.body.user,
@@ -103,13 +100,12 @@ export const session = {
         description: 'client-id requesting access',
         required: true
       }],
-      exec: async (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback, getState: () => AppState) => {
-        const url = `${getState().sessionState.apiUrl}/request-access`
+      exec: async (context: CommandContext) => {
         const payload = {
-          email: opts.email,
-          clientId: opts['client-id']
+          email: context.opts.email,
+          clientId: context.opts['client-id']
         }
-        await commandRequest({ url, payload }, onComplete, (response: RestResponse) => {
+        await commandRequest({ context, url: '/session/token/request', payload }, (response: RestResponse) => {
           return {
             output: <p>Access token successfully created.</p>
           }
@@ -120,14 +116,12 @@ export const session = {
       description: 'list authentication tokens',
       usage: 'session list-tokens',
       prompts: [],
-      exec: async (argv: string[], opts: OptionMap, onComplete: CommandCompleteCallback, getState: () => AppState) => {
-        const url = `${getState().sessionState.apiUrl}/list-tokens`
-        await commandRequest({ url }, onComplete, (response: RestResponse) => {
+      exec: async (context: CommandContext) => {
+        await commandRequest({ context, url: '/session/token/list', method: 'GET' }, (response: RestResponse) => {
           const header = ['ID', 'Token', 'Activated']
           const rows = response.body.tokens.map((t: any) => {
             return [t.id, t.value, t.activated]
           })
-
           return {
             output: <Table header={header} rows={rows} />
           }
@@ -136,17 +130,3 @@ export const session = {
     },
   ]
 }
-
-// const url = `https://${opts.host}/api/connect`
-// const response = await fetch(url, {
-//   method: 'POST',
-//   mode: 'cors',
-//   cache: 'no-cache',
-//   headers: {
-//     'Content-Type': 'application/json'
-//   },
-//   body: JSON.stringify({})
-// });
-
-// // onComplete()
-// response.json

@@ -30,14 +30,12 @@ export function initSession() {
 
 export function authenticateSession() {
   return (dispatch: Dispatch<AppAction>, getState: () => AppState) => {
-    const host = getState().sessionState.bastion
     dispatch(execStatement({time: new Date(), input: `session authenticate`}))
   }
 }
 
 export function disconnectSession() {
   return (dispatch: Dispatch<AppAction>, getState: () => AppState) => {
-    const host = getState().sessionState.bastion
     dispatch(execStatement({time: new Date(), input: `session disconnect`}))
   }
 }

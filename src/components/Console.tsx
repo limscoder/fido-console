@@ -56,7 +56,7 @@ interface InputProps {
 function alwaysFocusEffect(el: HTMLElement): () => any {
   el.focus()
   const onKeydown = (e: KeyboardEvent) => { 
-    if (document.activeElement !== el && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    if (document.activeElement !== el && !e.altKey && !e.ctrlKey) {
       el.focus()
       window.scrollTo(0, document.body.scrollHeight)
 
@@ -69,7 +69,7 @@ function alwaysFocusEffect(el: HTMLElement): () => any {
       selection?.addRange(range) //make the range you have just created the visible selection
     }
   }
-  const onKeydownOpts = { capture: true }
+  const onKeydownOpts = { capture: false }
   document.addEventListener('keydown', onKeydown, onKeydownOpts)
   return () => { document.removeEventListener('keydown', onKeydown, onKeydownOpts) }
 }
@@ -190,7 +190,7 @@ export default function Console() {
     if (store.sessionState.cxnId === '') {
       dispatch(initSession())
     }
-  }, [store.sessionState]);
+  }, [store.sessionState, dispatch]);
 
   const results = store.consoleState.results.map((v, i) => {
     return (

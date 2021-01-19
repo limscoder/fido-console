@@ -22,16 +22,15 @@ type StatusProps = {
   uplink: ControlStatus
   logs: Array<ControlLog>
   onAlign: (id: string, control: string) => void
-  onDecode: (id: string) => void
-  onReceive: () => void
-  onTransmit: () => void
+  onDecode: (id: string, alignment: string) => void
+  onTransmit: (id: string) => void
 }
 
 type LogsProps = {
   id: string
   control: ControlStatus
   logs: Array<ControlLog>
-  onDecode: (id: string) => void
+  onDecode: (id: string, alignment: string) => void
 }
 
 type ConnectionProps = {
@@ -59,7 +58,7 @@ const $log = styled.p`
   margin: 1em;
 `
 
-function ControlStatus(props: {control: ControlStatus}) {
+function ControlAlignment(props: {control: ControlStatus}) {
   const msg = props.control.status === 'fault' ? 
     <Error showIcon>fault detected</Error> : 
     <span>{ props.control.status }</span>;
@@ -81,22 +80,23 @@ function Connection(props: ConnectionProps) {
 
   return (
     <React.Fragment>
-      Downlink connection { button }:<br />&nbsp;&nbsp;<ControlStatus control={ props.control } />
+      Downlink connection { button }:<br />&nbsp;&nbsp;<ControlAlignment control={ props.control } />
     </React.Fragment>
   )
 }
 
 function Logs(props: LogsProps) {
-  const onDecode = useCallback(() => {
-    props.onDecode(props.id)
-  }, [props.id])
+  const {id, control, onDecode} = props
+  const onLogDecode = useCallback(() => {
+    onDecode(id, control.alignment)
+  }, [id, control, onDecode])
   const logMsgs = props.logs.map((l, i) => {
     return (
       <React.Fragment key={ i }>
         { l.timestamp }-
         <$log>
           { l.received ?
-            <span>received encoded transmission <Button onClick={ onDecode }>{ l.received }</Button></span> :
+            <span>received encoded transmission <Button onClick={ onLogDecode }>{ l.received }</Button></span> :
             l.msg }
         </$log>
       </React.Fragment>
@@ -114,11 +114,12 @@ function Logs(props: LogsProps) {
 }
 
 export default function Status(props: StatusProps) {
+  const {id, onAlign, onTransmit } = props
   const [showLogs, setShowLogs] = useState(false)
-  // const onDownlink = () => {
-  //   props.onAlign(props.id, 'downlink')
-  // }
-  const onUplinkAlign = () => { props.onAlign(props.id, 'uplink') }
+  const onUplinkAlign = useCallback(
+    () => { onAlign(id, 'uplink') }, [id, onAlign])
+  const onUplinkTransmit = useCallback(
+    () => { onTransmit(id) }, [id, onTransmit])
 
   return (
     <$card>
@@ -126,10 +127,9 @@ export default function Status(props: StatusProps) {
       <$content>
         Station:<br />&nbsp;&nbsp;{ props.name }<br /><br />
         <Connection control={ props.downlink } /><br /><br />
-        Uplink connection <Button onClick={ onUplinkAlign }>realign</Button>:<br />&nbsp;&nbsp;<ControlStatus control={ props.uplink } /><br /><br />
-        {/* <Button onClick={ props.onReceive }>receive signal</Button>&nbsp; */}
-        <Button onClick={ props.onTransmit }>transmit signal</Button>&nbsp;
-        <Button onClick={ () => { setShowLogs(!showLogs) } }>{ showLogs ? 'hide transmission logs' : 'show transmission logs' }</Button>
+        Uplink connection <Button onClick={ onUplinkAlign }>realign</Button>:<br />&nbsp;&nbsp;<ControlAlignment control={ props.uplink } /><br /><br />
+        <Button onClick={ onUplinkTransmit }>transmit uplink code</Button>&nbsp;
+        <Button onClick={ () => { setShowLogs(!showLogs) } }>{ showLogs ? 'hide downlink logs' : 'show downlink logs' }</Button>
         <br />
         { showLogs ? <Logs id={ props.id }
                            control={ props.downlink }

@@ -6,7 +6,6 @@ import { execStatement } from '../store/console/actions'
 
 const cellCount = 25
 const colCount = Math.sqrt(cellCount)
-const randomizeLimit = 0.50
 
 const $Hbox = styled.div`
   display: flex;
@@ -67,22 +66,11 @@ function Grid(props: GridProps) {
   return <$Grid>{ cells }</$Grid>
 }
 
-function generateGridState() {
-  const srcCells:Array<number> = []
-  const gridCells:Array<number> = []
-  const activeCells:Array<number> = []
+function generateGridState(alignment: string) {
+  const srcCells:Array<number> = alignment.split('').map((v) => parseInt(v, 10))
+  const gridCells:Array<number> = srcCells
+  const activeCells:Array<number> = gridCells.map(() => 0)
   const keyCells:Array<number> = []
-  for (let i = 0; i < cellCount; i++) {
-    let val = 0
-    if (Math.random() < randomizeLimit) {
-      val = 1
-    }
-
-    srcCells.push(val)
-    gridCells.push(val)
-    activeCells.push(0)
-  }
-
   return { srcCells, gridCells, activeCells, keyCells }
 }
 
@@ -129,30 +117,23 @@ function toggleGrid(i: number, gridState: GridState) {
   return { srcCells, gridCells, activeCells, keyCells }
 }
 
-export default function Decrypter(props: {stationId: string}) {
-  const [store, dispatch] = useContext(AppContext)
-  const [gridState, setGridState] = useState(generateGridState())
+export default function Decrypter(props: {stationId: string, alignment: string}) {
+  const {alignment, stationId} = props 
+  // eslint-disable-next-line
+  const [_, dispatch] = useContext(AppContext)
+  const [gridState, setGridState] = useState(generateGridState(alignment))
   const onClick = useCallback((i: number) => {
     setGridState(toggleGrid(i, gridState))
   }, [gridState, setGridState])
-  const onReset = useCallback(() => {
-    setGridState({
-      srcCells: gridState.srcCells,
-      gridCells: gridState.srcCells,
-      activeCells: gridState.srcCells.map(() => 0),
-      keyCells: []
-    })
-  }, [gridState, setGridState])
-  const onRegen = useCallback(() => {
-    setGridState(generateGridState)
-  }, [setGridState])
+  const onReset = useCallback(
+    () => setGridState(generateGridState(alignment)),
+    [alignment, setGridState])
   const onSubmit = useCallback(() => {
-    const alignment = JSON.stringify(gridState.srcCells)
     const key = JSON.stringify(gridState.keyCells)
     dispatch(execStatement({
       time: new Date(),
-      input: `transmission decode --station=${props.stationId} --alignment="${alignment}" --key="${key}"`}))
-  }, [dispatch, gridState])
+      input: `transmission downlink --station=${stationId} --key="${key}"`}))
+  }, [dispatch, gridState, stationId])
 
 
   return (
@@ -162,7 +143,6 @@ export default function Decrypter(props: {stationId: string}) {
         <Grid cells={ gridState.activeCells } onClick={ () => null }/>
       </$Hbox>
       <Button onClick={ onReset }>reset</Button>&nbsp;
-      <Button onClick={ onRegen }>regen</Button>&nbsp;
       <Button onClick={ onSubmit }>submit</Button><br /><br />
     </div>
   )

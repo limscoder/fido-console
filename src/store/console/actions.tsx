@@ -82,6 +82,7 @@ export function execStatement(stmt: Statement) {
             )
           }
           dispatch(completeStatement({stmt, output}))
+          window.scrollTo(0, document.body.scrollHeight)
         }
       }
       stmt.cmd.exec(cmdExec)

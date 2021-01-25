@@ -119,7 +119,7 @@ function toggleGrid(i: number, gridState: GridState) {
 
 export default function Decrypter(props: {stationId: string, alignment: string}) {
   const {alignment, stationId} = props 
-  // eslint-disable-next-line
+  // eslint-disable-next-line   
   const [_, dispatch] = useContext(AppContext)
   const [gridState, setGridState] = useState(generateGridState(alignment))
   const onClick = useCallback((i: number) => {
@@ -132,7 +132,7 @@ export default function Decrypter(props: {stationId: string, alignment: string})
     const key = JSON.stringify(gridState.keyCells)
     dispatch(execStatement({
       time: new Date(),
-      input: `transmission downlink --station=${stationId} --key="${key}"`}))
+      input: `station validate --station=${stationId} --checksum="${key}"`}))
   }, [dispatch, gridState, stationId])
 
 

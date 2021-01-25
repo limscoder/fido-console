@@ -3,15 +3,15 @@ import Help from '../../../components/Help'
 import { Command, Statement, OptionMap, CommandContext } from '../reducer'
 import { session } from './session'
 import { station } from './station'
-import { transmission } from './transmission'
+import { directive } from './directive'
 import { clearConsole } from '../../console/actions'
 
 const rootCmd = {
   name: 'root',
   subCommands: [
     session,
+    directive,
     station,
-    transmission,
     {
       name: 'clear',
       description: 'clear console output',

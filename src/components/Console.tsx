@@ -55,8 +55,13 @@ interface InputProps {
 
 function alwaysFocusEffect(el: HTMLElement): () => any {
   el.focus()
-  const onKeydown = (e: KeyboardEvent) => { 
-    if (document.activeElement !== el && !e.altKey && !e.ctrlKey) {
+  const onKeydown = (e: KeyboardEvent) => {
+    if (document.activeElement !== el && e.key !== 'Control' && e.key !== 'Meta') {
+      if (e.key === 'c' && (e.ctrlKey || e.metaKey)) {
+        // user is copying, noop
+        return
+      }
+
       el.focus()
       window.scrollTo(0, document.body.scrollHeight)
 

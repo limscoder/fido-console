@@ -8,10 +8,14 @@ const $Button = styled.button`
     font-family: 'SourceCodePro', monospace;
     font-size: 1em;
     padding: 0;
-    color: #a0fc89;
+    color: #8bd679;
     text-decoration: none;
     cursor: pointer;
     outline: none;
+
+    &:hover {
+      color: #afff9b;
+    }
 `
 
 interface ButtonProps {

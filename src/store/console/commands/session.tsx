@@ -1,6 +1,5 @@
 import React from 'react'
 import Warn from '../../../components/Warn'
-import Table from '../../../components/Table'
 import { connectBastion, receiveAuthentication } from '../../session/actions'
 import { CommandContext } from "../reducer"
 import { commandRequest, RestResponse } from './request'
@@ -108,22 +107,6 @@ export const session = {
         await commandRequest({ context, url: '/session/token/request', payload }, (response: RestResponse) => {
           return {
             output: <p>Access token successfully created.</p>
-          }
-        })
-      }
-    }, {
-      name: 'list-tokens',
-      description: 'list authentication tokens',
-      usage: 'session list-tokens',
-      prompts: [],
-      exec: async (context: CommandContext) => {
-        await commandRequest({ context, url: '/session/token/list', method: 'GET' }, (response: RestResponse) => {
-          const header = ['ID', 'Token', 'Activated']
-          const rows = response.body.tokens.map((t: any) => {
-            return [t.id, t.value, t.activated]
-          })
-          return {
-            output: <Table header={header} rows={rows} />
           }
         })
       }

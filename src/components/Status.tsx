@@ -128,7 +128,7 @@ export default function Status(props: StatusProps) {
         Station:<br />&nbsp;&nbsp;{ props.name }<br /><br />
         <Connection control={ props.downlink } /><br /><br />
         Uplink connection <Button onClick={ onUplinkAlign }>realign</Button>:<br />&nbsp;&nbsp;<ControlAlignment control={ props.uplink } /><br /><br />
-        <Button onClick={ onUplinkTransmit }>transmit uplink code</Button>&nbsp;
+        <Button onClick={ onUplinkTransmit }>transmit command code</Button>&nbsp;
         <Button onClick={ () => { setShowLogs(!showLogs) } }>{ showLogs ? 'hide downlink logs' : 'show downlink logs' }</Button>
         <br />
         { showLogs ? <Logs id={ props.id }

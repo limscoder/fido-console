@@ -25,6 +25,7 @@ const $header = styled.div`
   background-color: #c4c5c5;
   border: none;
   color: rgb(15, 15, 35);
+  font-weight: bold;
   text-align: center;
 `
 

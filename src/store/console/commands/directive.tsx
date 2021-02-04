@@ -67,7 +67,7 @@ export const directive = {
       }
     }, {
       name: 'unlock',
-      description: 'unlock directive',
+      description: 'unlock directive with security key',
       usage: 'directive unlock [flags]',
       prompts: [{
         flag: 'directive',

@@ -129,7 +129,7 @@ export default function Decrypter(props: {stationId: string, alignment: string})
     () => setGridState(generateGridState(alignment)),
     [alignment, setGridState])
   const onSubmit = useCallback(() => {
-    const key = JSON.stringify(gridState.keyCells)
+    const key = gridState.keyCells.join(',')
     dispatch(execStatement({
       time: new Date(),
       input: `station validate --station=${stationId} --checksum="${key}"`}))

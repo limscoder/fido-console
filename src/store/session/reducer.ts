@@ -6,8 +6,8 @@ export interface ConnectBastionResult {
   cxnId: string
   clientId: string
   bastion: string
-  apiUrl: string,
-  user: string,
+  apiUrl: string
+  user: string
   authenticated: boolean
 }
 
@@ -23,6 +23,7 @@ export interface SessionState {
   bastion: string
   apiUrl: string
   user: string
+  connected: boolean
   authenticated: boolean
 }
 
@@ -30,8 +31,9 @@ export const initialSessionState = {
   cxnId: '',
   clientId: '',
   bastion: '',
-  apiUrl: '',
+  apiUrl: 'http://localhost:8000',
   user: '',
+  connected: false,
   authenticated: false
 }
 

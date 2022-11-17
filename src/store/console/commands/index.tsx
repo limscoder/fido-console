@@ -1,28 +1,40 @@
 import React from 'react'
 import Help from '../../../components/Help'
 import { Command, Statement, OptionMap, CommandContext } from '../reducer'
-import { session } from './session'
-import { station } from './station'
-import { directive } from './directive'
+import { login } from './login'
+import { logout } from './logout'
+import { moduleEnable } from './module-enable'
+import { moduleStatus } from './module-status'
+import { reset } from './reset'
+import { status } from './status'
+import { transmit } from './transmit'
+import { uplink } from './uplink'
 import { clearConsole } from '../../console/actions'
+
+const clear = {
+  name: 'clear',
+  description: 'clear console output',
+  usage: 'clear',
+  exec: async (context: CommandContext) => {
+    context.onComplete({
+      actions: [clearConsole()],
+      output: null
+    })
+  }
+}
 
 const rootCmd = {
   name: 'root',
   subCommands: [
-    session,
-    directive,
-    station,
-    {
-      name: 'clear',
-      description: 'clear console output',
-      usage: 'clear',
-      exec: async (context: CommandContext) => {
-        context.onComplete({
-          actions: [clearConsole()],
-          output: null
-        })
-      }
-    }
+    clear,
+    login,
+    logout,
+    moduleEnable,
+    moduleStatus,
+    reset,
+    status,
+    transmit,
+    uplink
   ]
 }
 

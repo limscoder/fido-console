@@ -66,8 +66,8 @@ function Grid(props: GridProps) {
   return <$Grid>{ cells }</$Grid>
 }
 
-function generateGridState(alignment: string) {
-  const srcCells:Array<number> = alignment.split('').map((v) => parseInt(v, 10))
+function generateGridState(uplink: string) {
+  const srcCells:Array<number> = uplink.split('').map((v) => parseInt(v, 10))
   const gridCells:Array<number> = srcCells
   const activeCells:Array<number> = gridCells.map(() => 0)
   const keyCells:Array<number> = []
@@ -117,24 +117,23 @@ function toggleGrid(i: number, gridState: GridState) {
   return { srcCells, gridCells, activeCells, keyCells }
 }
 
-export default function Decrypter(props: {stationId: string, alignment: string}) {
-  const {alignment, stationId} = props 
+export default function Decrypter(props: {stationId: string, uplink: string}) {
+  const {uplink: uplink, stationId} = props 
   // eslint-disable-next-line   
   const [_, dispatch] = useContext(AppContext)
-  const [gridState, setGridState] = useState(generateGridState(alignment))
+  const [gridState, setGridState] = useState(generateGridState(uplink))
   const onClick = useCallback((i: number) => {
     setGridState(toggleGrid(i, gridState))
   }, [gridState, setGridState])
   const onReset = useCallback(
-    () => setGridState(generateGridState(alignment)),
-    [alignment, setGridState])
-  const onSubmit = useCallback(() => {
+    () => setGridState(generateGridState(uplink)),
+    [uplink, setGridState])
+  const onTransmit = useCallback(() => {
     const key = gridState.keyCells.join(',')
     dispatch(execStatement({
       time: new Date(),
-      input: `station validate --station=${stationId} --checksum="${key}"`}))
+      input: `transmit --station=${stationId} --checksum="${key}"`}))
   }, [dispatch, gridState, stationId])
-
 
   return (
     <div>
@@ -143,7 +142,7 @@ export default function Decrypter(props: {stationId: string, alignment: string})
         <Grid cells={ gridState.activeCells } onClick={ () => null }/>
       </$Hbox>
       <Button onClick={ onReset }>reset</Button>&nbsp;
-      <Button onClick={ onSubmit }>submit</Button><br /><br />
+      <Button onClick={ onTransmit }>transmit</Button><br /><br />
     </div>
   )
 }

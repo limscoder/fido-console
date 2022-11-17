@@ -1,5 +1,6 @@
-import React, { ReactNode } from 'react'
+import React, { ReactNode, useContext } from 'react'
 import styled from 'styled-components'
+import { AppContext } from './App' 
 import { Command } from '../store/console/reducer'
 
 const $Help = styled.div`
@@ -15,6 +16,7 @@ const $Td = styled.td`
 `
 
 export default function Help(props: {cmd: Command}) {
+  const [store] = useContext(AppContext)
   const sections:ReactNode[] = [];
 
   if (props.cmd.description) {
@@ -26,8 +28,16 @@ export default function Help(props: {cmd: Command}) {
   }
 
   if (props.cmd.subCommands && props.cmd.subCommands.length) {
-    const cmdRows = props.cmd.subCommands.map((cmd) => {
-      return <tr key={ cmd.name }><$Td>{ cmd.name }</$Td><td>- { cmd.description }</td></tr>
+    const cmdRows: ReactNode[] = []
+    props.cmd.subCommands.forEach((cmd) => {
+      if (cmd.authenticated === true && !store.sessionState.authenticated) {
+        return
+      }
+
+      if (cmd.authenticated === false && store.sessionState.authenticated) {
+        return
+      }
+      cmdRows.push(<tr key={ cmd.name }><$Td>{ cmd.name }</$Td><td>- { cmd.description }</td></tr>)
     })
 
     sections.push(<p key="commands-header">Available commands:</p>)

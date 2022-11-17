@@ -1,6 +1,13 @@
 import produce from "immer"
 import { Dispatch, ReactNode } from "react"
-import { ConsoleAction, RECEIVE_STATEMENT, NEXT_STATEMENT, PREV_STATEMENT, CLEAR_STATEMENT, COMPLETE_STATEMENT, CLEAR_CONSOLE } from "./actions"
+import {
+  ConsoleAction,
+  RECEIVE_STATEMENT,
+  NEXT_STATEMENT,
+  PREV_STATEMENT,
+  CLEAR_STATEMENT,
+  COMPLETE_STATEMENT,
+  CLEAR_CONSOLE } from "./actions"
 import { AppState, AppAction } from '..'
 
 const historyLimit = 250
@@ -35,6 +42,7 @@ export interface Command {
   subCommands?: Command[]
   prompts?: CommandOption[]
   notFound?: boolean
+  authenticated?: boolean
   exec?(context: CommandContext): void
 }
 
@@ -83,10 +91,12 @@ export const consoleReducer = produce((draft: ConsoleState, action: ConsoleActio
 
       // update history
       const stmt = action.payload.stmt
-      if (draft.history.length < 1 || stmt.input !== draft.history[draft.history.length - 1]) {
-        draft.history = draft.history.concat(stmt.input)
-        if (draft.history.length > historyLimit) {
-          draft.history.shift()
+      if (stmt.input) {
+        if (draft.history.length < 1 || stmt.input !== draft.history[draft.history.length - 1]) {
+          draft.history = draft.history.concat(stmt.input)
+          if (draft.history.length > historyLimit) {
+            draft.history.shift()
+          }
         }
       }
 

@@ -1,3 +1,4 @@
+import { ReactNode } from "react"
 import { CommandContext, CommandResult } from "../reducer"
 
 export interface RestOptions {
@@ -34,20 +35,22 @@ const restRequest = async (url: string, payload: any = {}, method = 'POST') => {
       ok: false,
       body: {
         Code: 'RequestError',
-        Message: error.toString()
+        Message: String(response? response.body : error)
       }
     }
   }
 
   let body
+  let text
   try {
-    body = await response.json()
+    text = await response.text()
+    body = JSON.parse(text)
   } catch (error) {
     return {
       ok: false,
       body: {
         Code: 'RequestError',
-        Message: error.toString()
+        Message: text
       }
     }
   }
@@ -58,19 +61,24 @@ const restRequest = async (url: string, payload: any = {}, method = 'POST') => {
   }
 }
 
-const completeResponse = (response: RestResponse, onComplete: (result: CommandResult) => void, handler: (response: RestResponse) => CommandResult) => {
+const completeResponse = (response: RestResponse,
+  onComplete: (result: CommandResult) => void,
+  handler: (response: RestResponse) => CommandResult,
+  errHandler?: (response: RestResponse) => ReactNode) => {
   if (response.ok) {
     onComplete(handler(response))
   } else {
     onComplete({
       error: response.body.Message,
-      output: ''
+      output: errHandler? errHandler(response) : ''
     })
   }
 }
 
-export const commandRequest = async (opts: RestOptions, responseHandler: (response: RestResponse) => CommandResult) => {
+export const commandRequest = async (opts: RestOptions,
+  responseHandler: (response: RestResponse) => CommandResult,
+  errHandler?: (response: RestResponse) => ReactNode) => {
   const url = opts.url.startsWith('http') ? opts.url : (opts.context.getState().sessionState.apiUrl + opts.url)
   const response = await restRequest(url, opts.payload, opts.method)
-  completeResponse(response, opts.context.onComplete, responseHandler)
+  completeResponse(response, opts.context.onComplete, responseHandler, errHandler)
 }

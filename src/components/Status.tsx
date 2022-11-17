@@ -1,141 +1,108 @@
-import React, { useCallback, useState } from 'react'
+import React, { ReactNode, useContext } from 'react'
 import styled from 'styled-components'
-import Error from './Error'
+import Warn from './Warn'
+import { AppAction } from '../store'
+import { authenticateSession, disconnectSession } from '../store/session/actions'
+import { execStatement } from '../store/console/actions'
+import { AppContext } from './App'
 import Button from './Button'
 
-type ControlStatus = {
-  status: string
-  alignment: string
-}
+const $Title = styled.td`
+  color: #61dafb
+`
 
-type ControlLog = {
-  'timestamp': string
-  'received'?: string
-  'msg'?: string
+type Directive = {
+  id: string
+  title: string
+  key?: string
+  unlocked: string
+  content: string[]
+  instructions: string[]
 }
 
 type StatusProps = {
-  id: string
-  name: string
-  control: ControlStatus
-  downlink: ControlStatus
-  uplink: ControlStatus
-  logs: Array<ControlLog>
-  onAlign: (id: string, control: string) => void
-  onDecode: (id: string, alignment: string) => void
-  onTransmit: (id: string) => void
+  directives?: Directive[] 
 }
 
-type LogsProps = {
-  id: string
-  control: ControlStatus
-  logs: Array<ControlLog>
-  onDecode: (id: string, alignment: string) => void
-}
+function renderAuthedElements(props: StatusProps, dispatch: React.Dispatch<AppAction>): ReactNode {
+  let els: ReactNode[] = []
 
-type ConnectionProps = {
-  control: ControlStatus
-}
+  let uplinkStatus: ReactNode = 'online'
+  if (props.directives) {
+    props.directives.forEach((directive: Directive) => {
+      let directiveStatus: ReactNode
+      let directiveAction: string
+      let directiveCallback: () => void
 
-const $card = styled.div`
-  margin: 1em;
-`
-
-const $header = styled.div`
-  background-color: #c4c5c5;
-  border: none;
-  color: rgb(15, 15, 35);
-  text-align: center;
-`
-
-const $content = styled.div`
-  border-width: 0 1px 1px 1px;
-  border-style: dashed;
-  padding: 1em;
-`
-
-const $log = styled.p`
-  margin: 1em;
-`
-
-function ControlAlignment(props: {control: ControlStatus}) {
-  const msg = props.control.status === 'fault' ? 
-    <Error showIcon>fault detected</Error> : 
-    <span>{ props.control.status }</span>;
-
-  return (
-    <span>
-      { msg } - { props.control.alignment ? props.control.alignment : 'misaligned' }
-    </span>
-  )
-}
-
-function Connection(props: ConnectionProps) {
-  const onClick = () => {}
-
-  let button
-  if (props.control.status === 'fault') {
-    button = <Button onClick={ onClick }>realign</Button>
+      directiveAction = "module status"
+      directiveCallback = () => {
+        dispatch(execStatement({ time: new Date(), input: `module-status --id=${directive.id}` }))
+      }
+      if (directive.unlocked) {
+        directiveStatus = "online"
+      } else {
+        directiveStatus = <Warn>fault detected</Warn>
+        uplinkStatus = <Warn>offline</Warn>
+      }
+      els.push(
+        <tr key={ directive.id }>
+          <$Title>[{ directive.title }]</$Title>
+          <td> - { directiveStatus }</td>
+          <td>&nbsp;&nbsp;...&nbsp;&nbsp;</td>
+          <td><Button onClick={ directiveCallback }>{ directiveAction }</Button></td>
+        </tr>)
+    })
   }
 
-  return (
-    <React.Fragment>
-      Downlink connection { button }:<br />&nbsp;&nbsp;<ControlAlignment control={ props.control } />
-    </React.Fragment>
-  )
-}
+  let uplinkCallback = () => {
+    dispatch(execStatement({ time: new Date(), input: `uplink` }))
+  }
 
-function Logs(props: LogsProps) {
-  const {id, control, onDecode} = props
-  const onLogDecode = useCallback(() => {
-    onDecode(id, control.alignment)
-  }, [id, control, onDecode])
-  const logMsgs = props.logs.map((l, i) => {
-    return (
-      <React.Fragment key={ i }>
-        { l.timestamp }-
-        <$log>
-          { l.received ?
-            <span>received encoded transmission <Button onClick={ onLogDecode }>{ l.received }</Button></span> :
-            l.msg }
-        </$log>
-      </React.Fragment>
-    )
-          })
+  els.push(
+    <tr key={ 'uplink' }>
+      <$Title>[FIDO uplink]</$Title>
+      <td> - { uplinkStatus }</td>
+      <td>&nbsp;&nbsp;...&nbsp;&nbsp;</td>
+      <td><Button onClick={ uplinkCallback }>uplink</Button></td>
+    </tr>)
 
-  return (
-    <div>
-      <br />
-      logs
-      <hr />
-      { logMsgs }
-    </div>
-  )
+  return els
 }
 
 export default function Status(props: StatusProps) {
-  const {id, onAlign, onTransmit } = props
-  const [showLogs, setShowLogs] = useState(false)
-  const onUplinkAlign = useCallback(
-    () => { onAlign(id, 'uplink') }, [id, onAlign])
-  const onUplinkTransmit = useCallback(
-    () => { onTransmit(id) }, [id, onTransmit])
+  const [store, dispatch] = useContext(AppContext)
+
+  let authStatus: string
+  let authAction: string
+  let authCallback: () => void
+  let authedElements: ReactNode
+  if (store.sessionState.authenticated) {
+    authStatus = store.sessionState.user
+    authAction = 'logout'
+    authCallback = () => {
+      dispatch(disconnectSession())
+    }
+    authedElements = renderAuthedElements(props, dispatch)
+  } else {
+    authStatus = 'unauthenticated'
+    authAction = 'login'
+    authCallback = () => {
+      dispatch(authenticateSession())
+    }
+    authedElements = []
+  }
 
   return (
-    <$card>
-      <$header>{ props.id }</$header>
-      <$content>
-        Station:<br />&nbsp;&nbsp;{ props.name }<br /><br />
-        <Connection control={ props.downlink } /><br /><br />
-        Uplink connection <Button onClick={ onUplinkAlign }>realign</Button>:<br />&nbsp;&nbsp;<ControlAlignment control={ props.uplink } /><br /><br />
-        <Button onClick={ onUplinkTransmit }>transmit command code</Button>&nbsp;
-        <Button onClick={ () => { setShowLogs(!showLogs) } }>{ showLogs ? 'hide downlink logs' : 'show downlink logs' }</Button>
-        <br />
-        { showLogs ? <Logs id={ props.id }
-                           control={ props.downlink }
-                           logs={ props.logs }
-                           onDecode={ props.onDecode } /> : null}
-      </$content>
-    </$card>
+    <table style={{ margin: "20px" }}>
+      <tbody>
+        <tr>
+          <$Title>[authorization]</$Title>
+          <td> - { authStatus }</td>
+          <td>&nbsp;&nbsp;...&nbsp;&nbsp;</td>
+          <td><Button onClick={ authCallback }>{ authAction }</Button></td>
+        </tr>
+        { authedElements }
+      </tbody>
+    </table>
   )
 }

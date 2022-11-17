@@ -3,7 +3,7 @@ import { execStatement } from '../console/actions'
 import { ConnectBastionResult, ReceiveAuthenticationResult } from './reducer'
 import { AppAction, AppState } from '..'
 
-const defaultBastion = 'kjab0yhwz6.execute-api.us-west-1.amazonaws.com'
+// const defaultBastion = 'kjab0yhwz6.execute-api.us-west-1.amazonaws.com'
 
 export const CONNECT_BASTION = 'CONNECT_BASTION'
 export function connectBastion(result: ConnectBastionResult) {
@@ -24,19 +24,25 @@ export function receiveAuthentication(result: ReceiveAuthenticationResult) {
 export function initSession() {
   return execStatement({
     time: new Date(),
-    input: `session connect --host=${defaultBastion}`
+    input: `status`
   })
 }
 
 export function authenticateSession() {
   return (dispatch: Dispatch<AppAction>, getState: () => AppState) => {
-    dispatch(execStatement({time: new Date(), input: `session authenticate`}))
+    dispatch(execStatement({time: new Date(), input: `login`}))
+  }
+}
+
+export function connectSession() {
+  return (dispatch: Dispatch<AppAction>, getState: () => AppState) => {
+    dispatch(execStatement({time: new Date(), input: `connect`}))
   }
 }
 
 export function disconnectSession() {
   return (dispatch: Dispatch<AppAction>, getState: () => AppState) => {
-    dispatch(execStatement({time: new Date(), input: `session disconnect`}))
+    dispatch(execStatement({time: new Date(), input: `logout`}))
   }
 }
 

@@ -66,9 +66,11 @@ export default function Status(props: DirectiveProps) {
     showDirectiveButton = <Button onClick={ onShowDirective }>{ showDirective ? 'hide directive' : 'show directive' }</Button>
   }
   
-  let unlockButton:ReactNode
-  if (!props.directive.unlocked) {
-    unlockButton = <Button onClick={ props.onUnlock }>unlock</Button>
+  let directiveStatus:ReactNode
+  if (props.directive.unlocked) {
+    directiveStatus = "module subsystem - online"
+  } else {
+    directiveStatus = <Button onClick={ props.onUnlock }>enable module</Button>
   }
 
   return (
@@ -79,7 +81,7 @@ export default function Status(props: DirectiveProps) {
         { instructions }
         { showDirectiveButton }
         { content }
-        { unlockButton }
+        { directiveStatus }
       </$content>
     </$card>
   )

@@ -18,6 +18,7 @@ export const transmit = {
     description: 'signal checksum',
     required: true
   }],
+  authenticated: true,
   exec: async (context: CommandContext) => {
     const opts = {
       context,

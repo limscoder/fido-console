@@ -42,6 +42,7 @@ export default function Help(props: {cmd: Command}) {
 
     sections.push(<p key="commands-header">Available commands:</p>)
     sections.push(<$Table key="commands"><tbody>{ cmdRows }</tbody></$Table>)
+    sections.push(<p key="about-footer">About: <a href="https://github.com/limscoder/fido-console">https://github.com/limscoder/fido-console</a></p>)
   }
 
   let prompts = (props.cmd.prompts || [])

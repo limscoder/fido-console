@@ -8,6 +8,7 @@ export const uplink = {
   description: 'establish tracker signal uplink',
   usage: 'uplink [flags]',
   prompts: [],
+  authenticated: true,
   exec: async (context: CommandContext) => {
     await commandRequest({ context, url: '/station/uplink', method: 'GET' }, (response: RestResponse) => {
       return {

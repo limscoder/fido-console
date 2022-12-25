@@ -2,6 +2,8 @@
 
 A coding puzzle game and web cli.
 
+https://fido-console.s3.us-west-1.amazonaws.com/index.html
+
 ### `npm start`
 
 Built with node 10.14.2 and create-react-app.
